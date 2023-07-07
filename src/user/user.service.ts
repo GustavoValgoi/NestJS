@@ -33,7 +33,7 @@ export class UserService {
 
     return this.usersRepository.save({
       ...createUserDTO,
-      typeUser: userType ? userType : UserType.User,
+      type_user: userType ? userType : UserType.User,
       password: hashPassword,
     });
   }
