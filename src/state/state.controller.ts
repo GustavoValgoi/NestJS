@@ -6,7 +6,7 @@ export class StateController {
   constructor(private readonly stateService: StateService) {}
 
   @Get()
-  async getAllUser() {
+  async getAllState() {
     return this.stateService.getAllState();
   }
 }

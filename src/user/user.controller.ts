@@ -49,7 +49,7 @@ export class UserController {
 
   @UsePipes(ValidationPipe)
   @Post()
-  async createUser(@Body() createUser: CreateUserDTO) {
+  async createUser(@Body() createUser: CreateUserDTO): Promise<UserEntity> {
     return this.userService.createUser(createUser);
   }
 }

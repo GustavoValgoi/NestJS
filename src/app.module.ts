@@ -43,7 +43,6 @@ import { CartProductModule } from './cart-product/cart-product.module';
     CartModule,
     CartProductModule,
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_GUARD,
