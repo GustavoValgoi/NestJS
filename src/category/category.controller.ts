@@ -13,7 +13,6 @@ import { Roles } from '../decorators/roles.decorator';
 import { UserType } from '../user/enum/user-type.enum';
 import { CreateCategoryDto } from './dtos/createCategory.dto';
 
-@Roles(UserType.Admin, UserType.User)
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

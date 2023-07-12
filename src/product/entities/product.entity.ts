@@ -1,3 +1,4 @@
+import { OrderProductEntity } from '../../order-product/entities/order-product.entity';
 import { CartProductEntity } from '../../cart-product/entities/cart-product.entity';
 import { CategoryEntity } from '../../category/entities/category.entity';
 import {
@@ -46,4 +47,10 @@ export class ProductEntity {
   )
   @JoinColumn({ name: 'category_id', referencedColumnName: 'id' })
   category?: CategoryEntity;
+
+  @OneToMany(
+    () => OrderProductEntity,
+    (orderProduct: OrderProductEntity) => orderProduct.product,
+  )
+  ordersProduct?: OrderProductEntity[];
 }

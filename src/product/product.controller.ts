@@ -18,7 +18,6 @@ import { CreateProductDto } from './dtos/createProduct.dto';
 import { DeleteResult } from 'typeorm';
 import { UpdateProductDto } from './dtos/updateProduct.dto';
 
-@Roles(UserType.Admin, UserType.Admin)
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
