@@ -5,9 +5,15 @@ import { CategoryService } from '../category.service';
 import { CategoryEntity } from '../entities/category.entity';
 import { categoryMock } from '../__mocks__/category.mock';
 import { createCategoryMock } from '../__mocks__/createCategory.mock';
+import { ProductService } from '../../product/product.service';
+import { countProductMock } from '../../product/__mocks__/countProduct.mock';
+import { ReturnCategoryDto } from '../dtos/returnCategory.dto';
+import { returnDeleteMock } from '../../__mocks__/returnDelete.mock';
+import { NotFoundException } from '@nestjs/common';
 
 describe('CategoryService', () => {
   let service: CategoryService;
+  let productService: ProductService;
   let categoryRepository: Repository<CategoryEntity>;
 
   beforeEach(async () => {
@@ -17,15 +23,27 @@ describe('CategoryService', () => {
         {
           provide: getRepositoryToken(CategoryEntity),
           useValue: {
+            find: jest
+              .fn()
+              .mockResolvedValue([new ReturnCategoryDto(categoryMock)]),
             findOne: jest.fn().mockResolvedValue(categoryMock),
-            find: jest.fn().mockResolvedValue([categoryMock]),
             save: jest.fn().mockResolvedValue(categoryMock),
+            delete: jest.fn().mockResolvedValue(returnDeleteMock),
+          },
+        },
+        {
+          provide: ProductService,
+          useValue: {
+            countProductsByCategoryId: jest
+              .fn()
+              .mockResolvedValue([countProductMock]),
           },
         },
       ],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
+    productService = module.get<ProductService>(ProductService);
     categoryRepository = module.get<Repository<CategoryEntity>>(
       getRepositoryToken(CategoryEntity),
     );
@@ -33,7 +51,16 @@ describe('CategoryService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(productService).toBeDefined();
     expect(categoryRepository).toBeDefined();
+  });
+
+  it('should return list of categories and amount products', async () => {
+    const categories = await service.findAllCategories();
+
+    expect(categories).toEqual([
+      new ReturnCategoryDto(categoryMock, countProductMock.total),
+    ]);
   });
 
   it('should return error in list category empty', async () => {
@@ -90,5 +117,19 @@ describe('CategoryService', () => {
     jest.spyOn(categoryRepository, 'findOne').mockResolvedValue(undefined);
 
     expect(service.findCategoryById(categoryMock.id)).rejects.toThrowError();
+  });
+
+  it('should return success DeleteResult category', async () => {
+    const deleteResult = await service.deleteCategory(categoryMock.id);
+
+    expect(deleteResult).toEqual(returnDeleteMock);
+  });
+
+  it('should return error in exception category not found in Delete Category', async () => {
+    jest.spyOn(categoryRepository, 'findOne').mockResolvedValue(undefined);
+
+    expect(service.deleteCategory(categoryMock.id)).rejects.toThrowError(
+      NotFoundException,
+    );
   });
 });

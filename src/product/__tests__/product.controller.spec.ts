@@ -24,6 +24,9 @@ describe('ProductController', () => {
             createProduct: jest.fn().mockResolvedValue(productMock),
             deleteProduct: jest.fn().mockResolvedValue(returnDeleteMock),
             updateProduct: jest.fn().mockResolvedValue(productMock),
+            findProductById: jest
+              .fn()
+              .mockResolvedValue(new ReturnProductDto(productMock)),
           },
         },
       ],
@@ -59,5 +62,10 @@ describe('ProductController', () => {
       updateProductMock,
     );
     expect(updatedProduct).toEqual(productMock);
+  });
+
+  it('should return product in find by id', async () => {
+    const updatedProduct = await controller.findProductById(productMock.id);
+    expect(updatedProduct).toEqual(new ReturnProductDto(productMock));
   });
 });

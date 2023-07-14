@@ -61,4 +61,14 @@ describe('UserController', () => {
     const user = await controller.createUser(createUserMock);
     expect(user).toEqual(userEntityMock);
   });
+
+  it('should return success after created ADMIN user', async () => {
+    const user = await controller.createAdmin(createUserMock);
+    expect(user).toEqual(userEntityMock);
+  });
+
+  it('should return current user', async () => {
+    const user = await controller.getInfoUser(userEntityMock.id);
+    expect(user).toEqual(new ReturnUserDto(userEntityMock));
+  });
 });

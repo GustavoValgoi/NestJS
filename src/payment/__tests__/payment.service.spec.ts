@@ -16,6 +16,8 @@ import { PaymentPixEntity } from '../entities/payment-pix.entity';
 import { PaymentCreditCardEntity } from '../entities/payment-credit-card.entity';
 import { BadRequestException } from '@nestjs/common';
 import { addressMock } from '../../address/__mocks__/address.mock';
+import { cartProductMock } from '../../cart-product/__mocks__/cart-product.mock';
+import { PaymentType } from '../../payment-status/enums/payment-type.enum';
 
 describe('PaymentService', () => {
   let service: PaymentService;
@@ -81,5 +83,49 @@ describe('PaymentService', () => {
         cartMock,
       ),
     ).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should return final price 0 in cartProduct undefined', async () => {
+    const spy = jest.spyOn(paymentRepository, 'save');
+
+    await service.createPayment(
+      createOrderCreditCardMock,
+      [productMock],
+      cartMock,
+    );
+
+    const savePayment = spy.mock.calls[0][0] as PaymentCreditCardEntity;
+    expect(savePayment.finalPrice).toEqual(0);
+  });
+
+  it('should return final price 500 in cartProduct send', async () => {
+    const spy = jest.spyOn(paymentRepository, 'save');
+    await service.createPayment(createOrderCreditCardMock, [productMock], {
+      ...cartMock,
+      cartProduct: [cartProductMock],
+    });
+    const savePayment = spy.mock.calls[0][0] as PaymentCreditCardEntity;
+
+    expect(savePayment.finalPrice).toEqual(500);
+  });
+
+  it('should return all data in save payment', async () => {
+    const spy = jest.spyOn(paymentRepository, 'save');
+    await service.createPayment(createOrderCreditCardMock, [productMock], {
+      ...cartMock,
+      cartProduct: [cartProductMock],
+    });
+    const savePayment = spy.mock.calls[0][0] as PaymentCreditCardEntity;
+
+    const paymentCreditCart: PaymentCreditCardEntity =
+      new PaymentCreditCardEntity(
+        PaymentType.Done,
+        500,
+        0,
+        500,
+        createOrderCreditCardMock,
+      );
+
+    expect(savePayment).toEqual(paymentCreditCart);
   });
 });

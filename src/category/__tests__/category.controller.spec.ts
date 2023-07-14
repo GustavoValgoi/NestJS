@@ -4,6 +4,7 @@ import { CategoryService } from '../category.service';
 import { categoryMock } from '../__mocks__/category.mock';
 import { ReturnCategoryDto } from '../dtos/returnCategory.dto';
 import { createCategoryMock } from '../__mocks__/createCategory.mock';
+import { returnDeleteMock } from '../../__mocks__/returnDelete.mock';
 
 describe('CategoryController', () => {
   let controller: CategoryController;
@@ -22,6 +23,7 @@ describe('CategoryController', () => {
             createCategory: jest
               .fn()
               .mockResolvedValue(new ReturnCategoryDto(categoryMock)),
+            deleteCategory: jest.fn().mockResolvedValue(returnDeleteMock),
           },
         },
       ],
@@ -46,5 +48,11 @@ describe('CategoryController', () => {
     const category = await controller.createCategory(createCategoryMock);
 
     expect(category).toEqual(new ReturnCategoryDto(categoryMock));
+  });
+
+  it('should return DeleteResult after delete category', async () => {
+    const deleteResult = await controller.deleteCategory(categoryMock.id);
+
+    expect(deleteResult).toEqual(returnDeleteMock);
   });
 });

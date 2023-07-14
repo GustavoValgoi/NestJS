@@ -53,7 +53,13 @@ export class UserService {
   }
 
   async getAllUser(): Promise<UserEntity[]> {
-    return this.usersRepository.find();
+    const users = await this.usersRepository.find();
+
+    if (!users || users.length === 0) {
+      throw new NotFoundException('Users not found.');
+    }
+
+    return users;
   }
 
   async findUserById(userId: number): Promise<UserEntity> {

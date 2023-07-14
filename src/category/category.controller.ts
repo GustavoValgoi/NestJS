@@ -5,13 +5,15 @@ import {
   Body,
   UsePipes,
   ValidationPipe,
+  Param,
+  Delete,
 } from '@nestjs/common';
-import { CategoryEntity } from './entities/category.entity';
 import { CategoryService } from './category.service';
 import { ReturnCategoryDto } from './dtos/returnCategory.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserType } from '../user/enum/user-type.enum';
 import { CreateCategoryDto } from './dtos/createCategory.dto';
+import { DeleteResult } from 'typeorm';
 
 @Controller('category')
 export class CategoryController {
@@ -19,12 +21,10 @@ export class CategoryController {
 
   @Get()
   async findAllCategories(): Promise<ReturnCategoryDto[]> {
-    return (await this.categoryService.findAllCategories()).map(
-      (category: CategoryEntity) => new ReturnCategoryDto(category),
-    );
+    return this.categoryService.findAllCategories();
   }
 
-  @Roles(UserType.Admin)
+  @Roles(UserType.Admin, UserType.Root)
   @Post()
   @UsePipes(ValidationPipe)
   async createCategory(
@@ -33,5 +33,13 @@ export class CategoryController {
     return new ReturnCategoryDto(
       await this.categoryService.createCategory(createCategory),
     );
+  }
+
+  @Roles(UserType.Admin, UserType.Root)
+  @Delete('/:categoryId')
+  async deleteCategory(
+    @Param('categoryId') categoryId: number,
+  ): Promise<DeleteResult> {
+    return this.categoryService.deleteCategory(categoryId);
   }
 }

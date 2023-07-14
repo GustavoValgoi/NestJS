@@ -9,6 +9,8 @@ import {
   updatePasswordInvalidMock,
   updatePasswordMock,
 } from '../__mocks__/updatePassUser.dto';
+import { UserType } from '../enum/user-type.enum';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('UserService', () => {
   let service: UserService;
@@ -22,6 +24,7 @@ describe('UserService', () => {
           provide: getRepositoryToken(UserEntity),
           useValue: {
             findOne: jest.fn().mockResolvedValue(userEntityMock),
+            find: jest.fn().mockResolvedValue([userEntityMock]),
             save: jest.fn().mockResolvedValue(userEntityMock),
           },
         },
@@ -104,5 +107,34 @@ describe('UserService', () => {
     expect(
       service.updatePasswordUser(updatePasswordMock, userEntityMock.id),
     ).rejects.toThrowError();
+  });
+
+  it('should return save admin user', async () => {
+    jest.spyOn(userRepository, 'findOne').mockResolvedValue(undefined);
+    const spy = jest.spyOn(userRepository, 'save');
+    const user = await service.createUser(createUserMock, UserType.Admin);
+
+    expect(user).toEqual(userEntityMock);
+    expect(spy.mock.calls[0][0].type_user).toEqual(UserType.Admin);
+  });
+
+  it('should return error in exception in save user', async () => {
+    jest.spyOn(userRepository, 'save').mockRejectedValue(new Error());
+
+    expect(
+      service.createUser(createUserMock, UserType.Admin),
+    ).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should return list of all users', async () => {
+    const users = await service.getAllUser();
+
+    expect(users).toEqual([userEntityMock]);
+  });
+
+  it('should return list of all users empty', async () => {
+    jest.spyOn(userRepository, 'find').mockResolvedValue([]);
+
+    expect(service.getAllUser()).rejects.toThrowError(NotFoundException);
   });
 });

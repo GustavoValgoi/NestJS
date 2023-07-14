@@ -17,6 +17,7 @@ import { ReturnProductDto } from './dtos/returnProduct.dto';
 import { CreateProductDto } from './dtos/createProduct.dto';
 import { DeleteResult } from 'typeorm';
 import { UpdateProductDto } from './dtos/updateProduct.dto';
+import { ReturnPriceDeliveryDto } from './dtos/returnPriceDelivery.dto';
 
 @Controller('product')
 export class ProductController {
@@ -24,12 +25,12 @@ export class ProductController {
 
   @Get()
   async findAllProducts(): Promise<ReturnProductDto[]> {
-    return (await this.productService.findAllProducts()).map(
+    return (await this.productService.findAllProducts([], true)).map(
       (product: ProductEntity) => new ReturnProductDto(product),
     );
   }
 
-  @Roles(UserType.Admin)
+  @Roles(UserType.Admin, UserType.Root)
   @UsePipes(ValidationPipe)
   @Post()
   async createProduct(
@@ -38,7 +39,7 @@ export class ProductController {
     return this.productService.createProduct(createProduct);
   }
 
-  @Roles(UserType.Admin)
+  @Roles(UserType.Admin, UserType.Root)
   @Delete('/:productId')
   async deleteProduct(
     @Param('productId') productId: number,
@@ -46,7 +47,7 @@ export class ProductController {
     return this.productService.deleteProduct(productId);
   }
 
-  @Roles(UserType.Admin)
+  @Roles(UserType.Admin, UserType.Root)
   @UsePipes(ValidationPipe)
   @Put('/:productId')
   async updateProduct(
@@ -54,5 +55,23 @@ export class ProductController {
     @Body() updateProduct: UpdateProductDto,
   ): Promise<ProductEntity> {
     return this.productService.updateProduct(updateProduct, productId);
+  }
+
+  @Roles(UserType.Admin, UserType.Root, UserType.User)
+  @Get('/:productId')
+  async findProductById(
+    @Param('productId') productId: number,
+  ): Promise<ReturnProductDto> {
+    return new ReturnProductDto(
+      await this.productService.findProductById(productId, true),
+    );
+  }
+
+  @Get('/:productId/delivery/:cep')
+  async findPriceDelivery(
+    @Param('productId') productId: number,
+    @Param('cep') cep: string,
+  ): Promise<ReturnPriceDeliveryDto> {
+    return this.productService.findPriceDelivery(cep, productId);
   }
 }

@@ -21,16 +21,20 @@ export class PaymentService {
       return 0;
     }
 
-    return cart.cartProduct.reduce((ac, cartProduct) => {
-      const product = products.find(
-        (prod) => prod.id === cartProduct.productId,
-      );
+    return Number(
+      cart.cartProduct
+        .reduce((ac, cartProduct) => {
+          const product = products.find(
+            (prod) => prod.id === cartProduct.productId,
+          );
 
-      if (product) {
-        return (ac += cartProduct.amount * product.price);
-      }
-      return 0;
-    }, 0);
+          if (product) {
+            return (ac += cartProduct.amount * product.price);
+          }
+          return 0;
+        }, 0)
+        .toFixed(2),
+    );
   }
 
   async createPayment(

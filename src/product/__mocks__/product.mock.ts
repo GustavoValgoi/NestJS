@@ -9,4 +9,9 @@ export const productMock: ProductEntity = {
   categoryId: categoryMock.id,
   createdAt: new Date(),
   updatedAt: new Date(),
+  diameter: 30,
+  weight: 30,
+  height: 30,
+  pLength: 30,
+  width: 30,
 };

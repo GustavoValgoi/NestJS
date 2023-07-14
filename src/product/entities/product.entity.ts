@@ -23,11 +23,26 @@ export class ProductEntity {
   @Column({ name: 'category_id', nullable: false })
   categoryId: number;
 
-  @Column({ name: 'price', nullable: false })
+  @Column({ name: 'price', type: 'decimal', nullable: false })
   price: number;
 
   @Column({ name: 'image', nullable: false })
   image: string;
+
+  @Column({ name: 'weight', nullable: false })
+  weight: number;
+
+  @Column({ name: 'length', nullable: false })
+  pLength: number;
+
+  @Column({ name: 'height', nullable: false })
+  height: number;
+
+  @Column({ name: 'width', nullable: false })
+  width: number;
+
+  @Column({ name: 'diameter', nullable: false })
+  diameter: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
