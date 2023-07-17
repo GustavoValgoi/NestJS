@@ -1,3 +1,4 @@
+import { Pagination } from '../../dtos/pagination.dto';
 import { categoryMock } from '../../category/__mocks__/category.mock';
 import { ProductEntity } from '../entities/product.entity';
 
@@ -14,4 +15,14 @@ export const productMock: ProductEntity = {
   height: 30,
   pLength: 30,
   width: 30,
+};
+
+export const productPaginationMock: Pagination<ProductEntity[]> = {
+  data: [productMock],
+  meta: {
+    currentPage: 1,
+    itemsPerPage: 10,
+    totalItems: 10,
+    totalPages: 1,
+  },
 };

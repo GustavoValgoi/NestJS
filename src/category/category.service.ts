@@ -12,6 +12,7 @@ import { CreateCategoryDto } from './dtos/createCategory.dto';
 import { ProductService } from '../product/product.service';
 import { ReturnCategoryDto } from './dtos/returnCategory.dto';
 import { CountProduct } from '../product/dtos/countProduct.dto';
+import { UpdateCategoryDto } from './dtos/updateCategory.dto';
 
 @Injectable()
 export class CategoryService {
@@ -55,11 +56,21 @@ export class CategoryService {
     );
   }
 
-  async findCategoryById(id: number): Promise<CategoryEntity> {
+  async findCategoryById(
+    id: number,
+    isRelations?: boolean,
+  ): Promise<CategoryEntity> {
+    const relations = isRelations
+      ? {
+          products: true,
+        }
+      : undefined;
+
     const category = await this.categoryRepository.findOne({
       where: {
         id,
       },
+      relations,
     });
 
     if (!category) {
@@ -98,8 +109,32 @@ export class CategoryService {
   }
 
   async deleteCategory(categoryId: number): Promise<DeleteResult> {
-    await this.findCategoryById(categoryId);
+    const category = await this.findCategoryById(categoryId, true);
+
+    if (category.products?.length > 0) {
+      throw new BadRequestException('Category with relations.');
+    }
 
     return this.categoryRepository.delete({ id: categoryId });
+  }
+
+  async editCategory(
+    categoryId: number,
+    updateCategory: UpdateCategoryDto,
+  ): Promise<CategoryEntity> {
+    const category = await this.findCategoryById(categoryId);
+
+    const categoryNamed = await this.findCategoryByName(
+      updateCategory.name,
+    ).catch(() => undefined);
+
+    if (categoryNamed) {
+      throw new BadRequestException('Category already exists.');
+    }
+
+    return this.categoryRepository.save({
+      ...category,
+      ...updateCategory,
+    });
   }
 }

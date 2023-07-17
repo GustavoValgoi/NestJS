@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ProductEntity } from './entities/product.entity';
-import { DeleteResult, In, Repository } from 'typeorm';
+import { DeleteResult, ILike, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductDto } from './dtos/createProduct.dto';
 import { CategoryService } from '../category/category.service';
@@ -16,7 +16,10 @@ import { SizeProductDTO } from '../correios/dtos/sizeProduct.dto';
 import { CorreiosService } from '../correios/correios.service';
 import { cdServiceEnum } from '../correios/enums/cdService.enum';
 import { ReturnPriceDeliveryDto } from './dtos/returnPriceDelivery.dto';
+import { Pagination, PaginationMeta } from '../dtos/pagination.dto';
 
+const DEFAULT_PAGE_SIZE = 10;
+const FIRST_PAGE = 1;
 @Injectable()
 export class ProductService {
   constructor(
@@ -26,6 +29,42 @@ export class ProductService {
     private readonly categoryService: CategoryService,
     private readonly correiosService: CorreiosService,
   ) {}
+
+  async findAllPage(
+    search?: string,
+    size = DEFAULT_PAGE_SIZE,
+    page = FIRST_PAGE,
+  ): Promise<Pagination<ProductEntity[]>> {
+    const skip = (page - 1) * size;
+    let findOptions = {};
+
+    if (search) {
+      findOptions = {
+        where: {
+          name: ILike(`%${search}%`),
+        },
+      };
+    }
+    const [products, total] = await this.productRepository.findAndCount({
+      ...findOptions,
+      take: size,
+      skip,
+    });
+
+    if (!products || !products.length) {
+      throw new NotFoundException('Products not found.');
+    }
+
+    return new Pagination(
+      new PaginationMeta(
+        Number(size),
+        total,
+        Number(page),
+        Math.ceil(total / size),
+      ),
+      products,
+    );
+  }
 
   async findAllProducts(
     productId?: number[],

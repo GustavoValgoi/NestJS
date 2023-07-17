@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryService } from '../category.service';
@@ -9,7 +10,8 @@ import { ProductService } from '../../product/product.service';
 import { countProductMock } from '../../product/__mocks__/countProduct.mock';
 import { ReturnCategoryDto } from '../dtos/returnCategory.dto';
 import { returnDeleteMock } from '../../__mocks__/returnDelete.mock';
-import { NotFoundException } from '@nestjs/common';
+import { updateCategoryMock } from '../__mocks__/updateCategory.mock';
+import { productMock } from '../../product/__mocks__/product.mock';
 
 describe('CategoryService', () => {
   let service: CategoryService;
@@ -125,11 +127,81 @@ describe('CategoryService', () => {
     expect(deleteResult).toEqual(returnDeleteMock);
   });
 
+  it('should send relations in request findOne', async () => {
+    const spy = jest.spyOn(categoryRepository, 'findOne');
+    await service.deleteCategory(categoryMock.id);
+
+    expect(spy.mock.calls[0][0]).toEqual({
+      where: {
+        id: categoryMock.id,
+      },
+      relations: {
+        products: true,
+      },
+    });
+  });
+
+  it('should return error in relations products lentgh', async () => {
+    jest.spyOn(categoryRepository, 'findOne').mockResolvedValue({
+      ...categoryMock,
+      products: [productMock],
+    });
+
+    expect(service.deleteCategory(categoryMock.id)).rejects.toThrowError(
+      BadRequestException,
+    );
+  });
+
   it('should return error in exception category not found in Delete Category', async () => {
     jest.spyOn(categoryRepository, 'findOne').mockResolvedValue(undefined);
 
     expect(service.deleteCategory(categoryMock.id)).rejects.toThrowError(
       NotFoundException,
     );
+  });
+
+  it('should return update category in success', async () => {
+    jest.spyOn(service, 'findCategoryById').mockResolvedValue(categoryMock);
+    jest.spyOn(service, 'findCategoryByName').mockResolvedValue(undefined);
+
+    const category = await service.editCategory(
+      categoryMock.id,
+      updateCategoryMock,
+    );
+
+    expect(category).toEqual(categoryMock);
+  });
+
+  it('should return send in request updated category ', async () => {
+    jest.spyOn(service, 'findCategoryById').mockResolvedValue(categoryMock);
+    jest.spyOn(service, 'findCategoryByName').mockResolvedValue(undefined);
+
+    const spy = jest.spyOn(categoryRepository, 'save');
+
+    await service.editCategory(categoryMock.id, updateCategoryMock);
+
+    expect(spy.mock.calls[0][0]).toEqual({
+      ...categoryMock,
+      ...updateCategoryMock,
+    });
+  });
+
+  it('should send category id and body', async () => {
+    jest.spyOn(service, 'findCategoryById').mockResolvedValue(categoryMock);
+    jest.spyOn(service, 'findCategoryByName').mockResolvedValue(undefined);
+
+    await service.editCategory(categoryMock.id, updateCategoryMock);
+
+    const spyFindById = jest.spyOn(service, 'findCategoryById');
+    const spyFindByName = jest.spyOn(service, 'findCategoryByName');
+
+    expect(spyFindById.mock.calls.length).toEqual(1);
+    expect(spyFindByName.mock.calls.length).toEqual(1);
+  });
+
+  it('should return error in updated category', async () => {
+    expect(
+      service.editCategory(categoryMock.id, updateCategoryMock),
+    ).rejects.toThrowError(BadRequestException);
   });
 });

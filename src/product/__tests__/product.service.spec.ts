@@ -32,6 +32,7 @@ describe('ProductService', () => {
             findOne: jest.fn().mockResolvedValue(productMock),
             save: jest.fn().mockResolvedValue(productMock),
             delete: jest.fn().mockResolvedValue(returnDeleteMock),
+            findAndCount: jest.fn().mockResolvedValue([[productMock], 1]),
           },
         },
         {
@@ -43,7 +44,7 @@ describe('ProductService', () => {
         {
           provide: CorreiosService,
           useValue: {
-            priceDelivery: jest.fn().mockResolvedValue([]),
+            priceDelivery: jest.fn().mockResolvedValue({}),
           },
         },
       ],
@@ -162,5 +163,40 @@ describe('ProductService', () => {
     expect(
       service.updateProduct(updateProductMock, productMock.id),
     ).rejects.toThrowError();
+  });
+
+  it('should return product pagination', async () => {
+    const spy = jest.spyOn(productRepository, 'findAndCount');
+    const productsPagination = await service.findAllPage();
+
+    expect(productsPagination.data).toEqual([productMock]);
+    expect(productsPagination.meta).toEqual({
+      itemsPerPage: 10,
+      totalItems: 1,
+      currentPage: 1,
+      totalPages: 1,
+    });
+    expect(spy.mock.calls[0][0]).toEqual({
+      take: 10,
+      skip: 0,
+    });
+  });
+
+  it('should return product pagination send size and page', async () => {
+    const mockSize = 432;
+    const mockPage = 532;
+    const productsPagination = await service.findAllPage(
+      undefined,
+      mockSize,
+      mockPage,
+    );
+
+    expect(productsPagination.data).toEqual([productMock]);
+    expect(productsPagination.meta).toEqual({
+      itemsPerPage: mockSize,
+      totalItems: 1,
+      currentPage: mockPage,
+      totalPages: 1,
+    });
   });
 });

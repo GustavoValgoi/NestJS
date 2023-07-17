@@ -8,6 +8,7 @@ import {
   Body,
   Param,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Roles } from '../decorators/roles.decorator';
@@ -18,6 +19,7 @@ import { CreateProductDto } from './dtos/createProduct.dto';
 import { DeleteResult } from 'typeorm';
 import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { ReturnPriceDeliveryDto } from './dtos/returnPriceDelivery.dto';
+import { Pagination } from '../dtos/pagination.dto';
 
 @Controller('product')
 export class ProductController {
@@ -28,6 +30,15 @@ export class ProductController {
     return (await this.productService.findAllProducts([], true)).map(
       (product: ProductEntity) => new ReturnProductDto(product),
     );
+  }
+
+  @Get('/page')
+  async findAllPage(
+    @Query('search') search?: string,
+    @Query('size') size?: number,
+    @Query('page') page?: number,
+  ): Promise<Pagination<ReturnProductDto[]>> {
+    return this.productService.findAllPage(search, size, page);
   }
 
   @Roles(UserType.Admin, UserType.Root)
