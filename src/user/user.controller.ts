@@ -22,6 +22,14 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Roles(UserType.Admin, UserType.Root)
+  @Get('/all')
+  async getAllUser(): Promise<ReturnUserDto[]> {
+    return (await this.userService.getAllUser()).map(
+      (UserEntity) => new ReturnUserDto(UserEntity),
+    );
+  }
+
+  @Roles(UserType.Admin, UserType.Root)
   @Get('/:userId')
   async getUserById(@Param('userId') userId: number): Promise<ReturnUserDto> {
     return new ReturnUserDto(
@@ -34,14 +42,6 @@ export class UserController {
   async getInfoUser(@UserId() userId: number): Promise<ReturnUserDto> {
     return new ReturnUserDto(
       await this.userService.getUserByIdUsignRelations(userId),
-    );
-  }
-
-  @Roles(UserType.Admin, UserType.Root)
-  @Get('/all')
-  async getAllUser(): Promise<ReturnUserDto[]> {
-    return (await this.userService.getAllUser()).map(
-      (UserEntity) => new ReturnUserDto(UserEntity),
     );
   }
 
